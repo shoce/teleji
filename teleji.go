@@ -17,7 +17,6 @@ go mod tidy
 GoFmt
 GoBuildNull
 GoBuild
-GoRelease
 GoRun
 */
 
