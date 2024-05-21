@@ -132,7 +132,7 @@ func init() {
 	TgDisableNotification = true
 	TgDisableWebPagePreview = true
 
-	if os.Getenv("TgPre") != "" {
+	if os.Getenv("TgPre") != "" && os.Getenv("TgPre") != "false" {
 		TgPre = true
 	}
 }
