@@ -176,9 +176,27 @@ func main() {
 		TgParseMode = "MarkdownV2"
 	}
 
+	// https://core.telegram.org/bots/api#markdownv2-style
 	if TgParseMode == "MarkdownV2" && !TgPre {
 		message = strings.ReplaceAll(message, ".", "\\.")
 		message = strings.ReplaceAll(message, "-", "\\-")
+		message = strings.ReplaceAll(message, "#", "\\#")
+		message = strings.ReplaceAll(message, "_", "\\_")
+		message = strings.ReplaceAll(message, "*", "\\*")
+		//message = strings.ReplaceAll(message, "[", "\\[")
+		//message = strings.ReplaceAll(message, "]", "\\]")
+		//message = strings.ReplaceAll(message, "(", "\\(")
+		//message = strings.ReplaceAll(message, ")", "\\)")
+		message = strings.ReplaceAll(message, "~", "\\~")
+		message = strings.ReplaceAll(message, "`", "\\`")
+		message = strings.ReplaceAll(message, ">", "\\>")
+		message = strings.ReplaceAll(message, "+", "\\+")
+		message = strings.ReplaceAll(message, "=", "\\=")
+		message = strings.ReplaceAll(message, "|", "\\|")
+		message = strings.ReplaceAll(message, "{", "\\{")
+		message = strings.ReplaceAll(message, "}", "\\}")
+		message = strings.ReplaceAll(message, "=", "\\=")
+		message = strings.ReplaceAll(message, "!", "\\!")
 	}
 
 	var smresp struct {
