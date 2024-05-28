@@ -172,7 +172,7 @@ func main() {
 	// https://core.telegram.org/bots/api#markdownv2-style
 	if TgParseMode == "MarkdownV2" && !TgPre {
 		message = strings.NewReplacer(
-			"`", "\\`",
+			//"`", "\\`",
 			".", "\\.",
 			"-", "\\-",
 			"_", "\\_",
