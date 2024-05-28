@@ -169,13 +169,6 @@ func main() {
 		message = message + TgSuffix
 	}
 
-	if TgPre {
-		message = strings.ReplaceAll(message, "\\", "\\\\")
-		message = strings.ReplaceAll(message, "`", "\\`")
-		message = "```\n" + message + "\n```"
-		TgParseMode = "MarkdownV2"
-	}
-
 	// https://core.telegram.org/bots/api#markdownv2-style
 	if TgParseMode == "MarkdownV2" && !TgPre {
 		message = strings.NewReplacer(
@@ -199,6 +192,13 @@ func main() {
 			// "(", "\\(",
 			// ")", "\\)",
 		).Replace(message)
+	}
+
+	if TgPre {
+		message = strings.ReplaceAll(message, "\\", "\\\\")
+		message = strings.ReplaceAll(message, "`", "\\`")
+		message = "```\n" + message + "\n```"
+		TgParseMode = "MarkdownV2"
 	}
 
 	var smresp struct {
