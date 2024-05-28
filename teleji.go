@@ -48,6 +48,8 @@ var (
 	TgDisableWebPagePreview bool
 	TgPre                   bool
 	//CgiMode     bool
+
+	MessageText string
 )
 
 func log(msg string, args ...interface{}) {
@@ -81,6 +83,45 @@ type TgEditMessageRequest struct {
 func init() {
 	if len(os.Args) == 2 && os.Args[1] == "version" {
 		fmt.Println(Version)
+		os.Exit(0)
+	}
+
+	if messageBytes, err := ioutil.ReadAll(os.Stdin); err != nil {
+		log("%v", err)
+		os.Exit(1)
+	} else {
+		MessageText = strings.TrimSpace(string(messageBytes))
+	}
+
+	if MessageText == "" {
+		log("Empty message text.")
+		os.Exit(1)
+	}
+
+	if len(os.Args) == 2 && os.Args[1] == "escape" {
+		// https://core.telegram.org/bots/api#markdownv2-style
+		MessageText = strings.NewReplacer(
+			"`", "\\`",
+			".", "\\.",
+			"-", "\\-",
+			"_", "\\_",
+			"#", "\\#",
+			"*", "\\*",
+			"~", "\\~",
+			">", "\\>",
+			"+", "\\+",
+			"=", "\\=",
+			"|", "\\|",
+			"!", "\\!",
+			"{", "\\{",
+			"}", "\\}",
+			"[", "\\[",
+			"]", "\\]",
+			"(", "\\(",
+			")", "\\)",
+		).Replace(MessageText)
+
+		fmt.Println(MessageText)
 		os.Exit(0)
 	}
 
@@ -140,17 +181,6 @@ func init() {
 func main() {
 	var err error
 
-	messageBytes, err := ioutil.ReadAll(os.Stdin)
-	if err != nil {
-		log("%v", err)
-		os.Exit(1)
-	}
-	message := strings.TrimSpace(string(messageBytes))
-	if message == "" {
-		log("Empty message.")
-		os.Exit(1)
-	}
-
 	/*
 		if len(os.Args) > 1 && os.Args[1] == "-cgi" {
 			CgiMode = true
@@ -163,40 +193,16 @@ func main() {
 	*/
 
 	if TgPrefix != "" {
-		message = TgPrefix + message
+		MessageText = TgPrefix + MessageText
 	}
 	if TgSuffix != "" {
-		message = message + TgSuffix
-	}
-
-	// https://core.telegram.org/bots/api#markdownv2-style
-	if TgParseMode == "MarkdownV2" && !TgPre {
-		message = strings.NewReplacer(
-			//"`", "\\`",
-			".", "\\.",
-			"-", "\\-",
-			"_", "\\_",
-			//"#", "\\#",
-			//"*", "\\*",
-			"~", "\\~",
-			">", "\\>",
-			"+", "\\+",
-			"=", "\\=",
-			"|", "\\|",
-			"!", "\\!",
-			"{", "\\{",
-			"}", "\\}",
-			// "[", "\\[",
-			// "]", "\\]",
-			// "(", "\\(",
-			// ")", "\\)",
-		).Replace(message)
+		MessageText = MessageText + TgSuffix
 	}
 
 	if TgPre {
-		message = strings.ReplaceAll(message, "\\", "\\\\")
-		message = strings.ReplaceAll(message, "`", "\\`")
-		message = "```\n" + message + "\n```"
+		MessageText = strings.ReplaceAll(MessageText, "\\", "\\\\")
+		MessageText = strings.ReplaceAll(MessageText, "`", "\\`")
+		MessageText = "```\n" + MessageText + "\n```"
 		TgParseMode = "MarkdownV2"
 	}
 
@@ -213,7 +219,7 @@ func main() {
 		if len(TgMessageIds) == 0 {
 			sendMessage := TgSendMessageRequest{
 				ChatId:                TgChatIds[i],
-				Text:                  message,
+				Text:                  MessageText,
 				ParseMode:             TgParseMode,
 				DisableNotification:   TgDisableNotification,
 				DisableWebPagePreview: TgDisableWebPagePreview,
@@ -249,7 +255,7 @@ func main() {
 			editMessageText := TgEditMessageRequest{
 				TgSendMessageRequest: TgSendMessageRequest{
 					ChatId:                TgChatIds[i],
-					Text:                  message,
+					Text:                  MessageText,
 					ParseMode:             TgParseMode,
 					DisableNotification:   TgDisableNotification,
 					DisableWebPagePreview: TgDisableWebPagePreview,
