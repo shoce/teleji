@@ -7,6 +7,7 @@ history:
 020/1106 print message id of the posted message and able to edit messages by id
 020/1118 TgPre env var to send a preformatted message
 021/0916 TgDisableWebPagePreview
+024/0529 TgMessageText env var instead of reading from stdin
 
 https://core.telegram.org/bots/api
 
@@ -26,7 +27,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"strconv"
@@ -49,7 +49,7 @@ var (
 	TgPre                   bool
 	//CgiMode     bool
 
-	MessageText string
+	TgMessageText string
 )
 
 func log(msg string, args ...interface{}) {
@@ -86,21 +86,16 @@ func init() {
 		os.Exit(0)
 	}
 
-	if messageBytes, err := ioutil.ReadAll(os.Stdin); err != nil {
-		log("%v", err)
-		os.Exit(1)
-	} else {
-		MessageText = strings.TrimSpace(string(messageBytes))
-	}
+	TgMessageText = strings.TrimSpace(os.Getenv("TgMessageText"))
 
-	if MessageText == "" {
+	if TgMessageText == "" {
 		log("Empty message text.")
 		os.Exit(1)
 	}
 
 	if len(os.Args) == 2 && os.Args[1] == "escape" {
 		// https://core.telegram.org/bots/api#markdownv2-style
-		MessageText = strings.NewReplacer(
+		TgMessageText = strings.NewReplacer(
 			"`", "\\`",
 			".", "\\.",
 			"-", "\\-",
@@ -119,9 +114,9 @@ func init() {
 			"]", "\\]",
 			"(", "\\(",
 			")", "\\)",
-		).Replace(MessageText)
+		).Replace(TgMessageText)
 
-		fmt.Println(MessageText)
+		fmt.Println(TgMessageText)
 		os.Exit(0)
 	}
 
@@ -193,16 +188,16 @@ func main() {
 	*/
 
 	if TgPrefix != "" {
-		MessageText = TgPrefix + MessageText
+		TgMessageText = TgPrefix + TgMessageText
 	}
 	if TgSuffix != "" {
-		MessageText = MessageText + TgSuffix
+		TgMessageText = TgMessageText + TgSuffix
 	}
 
 	if TgPre {
-		MessageText = strings.ReplaceAll(MessageText, "\\", "\\\\")
-		MessageText = strings.ReplaceAll(MessageText, "`", "\\`")
-		MessageText = "```\n" + MessageText + "\n```"
+		TgMessageText = strings.ReplaceAll(TgMessageText, "\\", "\\\\")
+		TgMessageText = strings.ReplaceAll(TgMessageText, "`", "\\`")
+		TgMessageText = "```\n" + TgMessageText + "\n```"
 		TgParseMode = "MarkdownV2"
 	}
 
@@ -219,7 +214,7 @@ func main() {
 		if len(TgMessageIds) == 0 {
 			sendMessage := TgSendMessageRequest{
 				ChatId:                TgChatIds[i],
-				Text:                  MessageText,
+				Text:                  TgMessageText,
 				ParseMode:             TgParseMode,
 				DisableNotification:   TgDisableNotification,
 				DisableWebPagePreview: TgDisableWebPagePreview,
@@ -255,7 +250,7 @@ func main() {
 			editMessageText := TgEditMessageRequest{
 				TgSendMessageRequest: TgSendMessageRequest{
 					ChatId:                TgChatIds[i],
-					Text:                  MessageText,
+					Text:                  TgMessageText,
 					ParseMode:             TgParseMode,
 					DisableNotification:   TgDisableNotification,
 					DisableWebPagePreview: TgDisableWebPagePreview,
