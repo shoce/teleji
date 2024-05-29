@@ -8,6 +8,13 @@ history:
 020/1118 TgPre env var to send a preformatted message
 021/0916 TgDisableWebPagePreview
 024/0529 TgMessageText env var instead of reading from stdin
+024/0529 escape cmd
+
+usage:
+teleji - reads text from TgMessageText env var and sends the message
+teleji escape - reads text from TgMessageText env var, prints escaped text to stdout
+teleji escape VAR_NAME - reads text from VAR_NAME env var, prints escaped text to stdout
+teleji version - prints version to stdout
 
 https://core.telegram.org/bots/api
 
@@ -88,12 +95,12 @@ func init() {
 
 	TgMessageText = strings.TrimSpace(os.Getenv("TgMessageText"))
 
-	if TgMessageText == "" {
-		log("Empty message text.")
-		os.Exit(1)
-	}
+	if len(os.Args) > 1 && os.Args[1] == "escape" {
 
-	if len(os.Args) == 2 && os.Args[1] == "escape" {
+		if len(os.Args) > 2 {
+			TgMessageText = strings.TrimSpace(os.Getenv(os.Args[2]))
+		}
+
 		// https://core.telegram.org/bots/api#markdownv2-style
 		TgMessageText = strings.NewReplacer(
 			"`", "\\`",
@@ -118,6 +125,11 @@ func init() {
 
 		fmt.Println(TgMessageText)
 		os.Exit(0)
+	}
+
+	if TgMessageText == "" {
+		log("Empty TgMessageText.")
+		os.Exit(1)
 	}
 
 	if os.Getenv("Verbose") != "" {
