@@ -7,6 +7,7 @@ on:
     branches: [ "main" ]
 jobs:
 
+
   build-push-ubuntu-22-04:
     runs-on: ubuntu-22.04
     steps:
@@ -45,6 +46,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh release create $VERSION ${{ github.event.repository.name }}.linux.amd64.gz --notes-file release.notes..text
+
 
   build-push-ubuntu-24-04:
     runs-on: ubuntu-24.04
@@ -85,6 +87,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: gh release create $VERSION ${{ github.event.repository.name }}.linux.amd64.gz --notes-file release.notes..text
 
+
   build-push-alpine-3-19:
     runs-on: ubuntu-latest
     steps:
@@ -99,6 +102,54 @@ jobs:
       - name: version
         run: |
           BUILD_OS=alpine-3.19
+          echo "BUILD_OS:$BUILD_OS"
+          echo "BUILD_OS=$BUILD_OS" >> $GITHUB_ENV
+          VERSION=$( date '+%y%m%d.%H%M.0' )-$BUILD_OS
+          echo "VERSION:$VERSION"
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+      - name: go build
+        shell: alpine.sh {0}
+        run: GOOS=linux GOARCH=amd64 go build -o ${{ github.event.repository.name }}.linux.amd64 -trimpath -ldflags ' -X main.Version='$VERSION
+      - name: gzip
+        shell: alpine.sh {0}
+        run: gzip -k ${{ github.event.repository.name }}.linux.amd64
+      - name: list files
+        shell: alpine.sh {0}
+        run: ls -l -a
+      - name: release notes
+        shell: alpine.sh {0}
+        run: |
+          {
+          echo "curl -sSL https://github.com/shoce/${{ github.event.repository.name }}/releases/download/$VERSION/${{ github.event.repository.name }}.linux.amd64.gz | gunzip | put /bin/${{ github.event.repository.name }}-$BUILD_OS 755"
+          echo "curl -sSL https://github.com/shoce/${{ github.event.repository.name }}/releases/download/$VERSION/${{ github.event.repository.name }}.linux.amd64.gz | gunzip | put /bin/${{ github.event.repository.name }} 755"
+          echo
+          echo /etc/alpine-release:
+          cat /etc/alpine-release
+          echo
+          echo go version:
+          go version
+          } >release.notes..text
+      - name: gh release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create $VERSION ${{ github.event.repository.name }}.linux.amd64.gz --notes-file release.notes..text
+
+
+  build-push-alpine-3-20:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      # https://github.com/jirutka/setup-alpine
+      - uses: jirutka/setup-alpine@v1
+        with:
+          branch: v3.20
+          arch: x86_64
+          packages: >
+            go
+      - name: version
+        run: |
+          BUILD_OS=alpine-3.20
           echo "BUILD_OS:$BUILD_OS"
           echo "BUILD_OS=$BUILD_OS" >> $GITHUB_ENV
           VERSION=$( date '+%y%m%d.%H%M.0' )-$BUILD_OS
