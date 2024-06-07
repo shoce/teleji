@@ -8,6 +8,46 @@ on:
 jobs:
 
 
+  build-push-ubuntu-20-04:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v3
+      - name: version
+        run: |
+          BUILD_OS=ubuntu-20.04
+          echo "BUILD_OS:$BUILD_OS"
+          echo "BUILD_OS=$BUILD_OS" >> $GITHUB_ENV
+          VERSION=$( date '+%y%m%d.%H%M.0' )-$BUILD_OS
+          echo "VERSION:$VERSION"
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+      - uses: actions/setup-go@v4
+        with:
+          go-version: '^1.22.4'
+      - name: go build
+        run: GOOS=linux GOARCH=amd64 go build -o ${{ github.event.repository.name }}.linux.amd64 -trimpath -ldflags ' -X main.Version='$VERSION
+      - name: gzip
+        run: gzip -k ${{ github.event.repository.name }}.linux.amd64
+      - name: list files
+        run: ls -l -a
+      - name: release notes
+        run: |
+          {
+          echo "curl -sSL https://github.com/shoce/${{ github.event.repository.name }}/releases/download/$VERSION/${{ github.event.repository.name }}.linux.amd64.gz | gunzip | put /bin/${{ github.event.repository.name }}-$BUILD_OS 755"
+          echo "curl -sSL https://github.com/shoce/${{ github.event.repository.name }}/releases/download/$VERSION/${{ github.event.repository.name }}.linux.amd64.gz | gunzip | put /bin/${{ github.event.repository.name }} 755"
+          echo
+          echo /etc/os-release:
+          cat /etc/os-release
+          echo
+          echo go version:
+          go version
+          } >release.notes..text
+      - name: gh release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create $VERSION ${{ github.event.repository.name }}.linux.amd64.gz --notes-file release.notes..text
+
+
   build-push-ubuntu-22-04:
     runs-on: ubuntu-22.04
     steps:
@@ -22,7 +62,7 @@ jobs:
           echo "VERSION=$VERSION" >> $GITHUB_ENV
       - uses: actions/setup-go@v4
         with:
-          go-version: '^1.22.3'
+          go-version: '^1.22.4'
       - name: go build
         run: GOOS=linux GOARCH=amd64 go build -o ${{ github.event.repository.name }}.linux.amd64 -trimpath -ldflags ' -X main.Version='$VERSION
       - name: gzip
@@ -62,7 +102,7 @@ jobs:
           echo "VERSION=$VERSION" >> $GITHUB_ENV
       - uses: actions/setup-go@v4
         with:
-          go-version: '^1.22.3'
+          go-version: '^1.22.4'
       - name: go build
         run: GOOS=linux GOARCH=amd64 go build -o ${{ github.event.repository.name }}.linux.amd64 -trimpath -ldflags ' -X main.Version='$VERSION
       - name: gzip
