@@ -88,7 +88,7 @@ type TgEditMessageRequest struct {
 }
 
 func init() {
-	if len(os.Args) == 2 && os.Args[1] == "version" {
+	if len(os.Args) == 2 && (os.Args[1] == "version" || os.Args[1] == "--version") {
 		fmt.Println(Version)
 		os.Exit(0)
 	}
