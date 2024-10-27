@@ -18,7 +18,6 @@ teleji version - prints version to stdout
 
 https://core.telegram.org/bots/api
 
-go mod init github.com/shoce/teleji
 go get -a -u -v
 go mod tidy
 
@@ -58,34 +57,6 @@ var (
 
 	TgMessageText string
 )
-
-func log(msg string, args ...interface{}) {
-	const Beat = time.Duration(24) * time.Hour / 1000
-	tzBiel := time.FixedZone("Biel", 60*60)
-	t := time.Now().In(tzBiel)
-	ty := t.Sub(time.Date(t.Year(), 1, 1, 0, 0, 0, 0, tzBiel))
-	td := t.Sub(time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, tzBiel))
-	ts := fmt.Sprintf(
-		"%d/%d@%d",
-		t.Year()%1000,
-		int(ty/(time.Duration(24)*time.Hour))+1,
-		int(td/Beat),
-	)
-	fmt.Fprintf(os.Stderr, ts+" "+msg+"\n", args...)
-}
-
-type TgSendMessageRequest struct {
-	ChatId                int64  `json:"chat_id"`
-	Text                  string `json:"text"`
-	ParseMode             string `json:"parse_mode,omitempty"`
-	DisableNotification   bool   `json:"disable_notification"`
-	DisableWebPagePreview bool   `json:"disable_web_page_preview"`
-}
-
-type TgEditMessageRequest struct {
-	TgSendMessageRequest
-	MessageId int64 `json:"message_id"`
-}
 
 func init() {
 	if len(os.Args) == 2 && (os.Args[1] == "version" || os.Args[1] == "--version") {
@@ -321,4 +292,32 @@ func main() {
 			fmt.Println()
 		}
 	*/
+}
+
+func log(msg string, args ...interface{}) {
+	const Beat = time.Duration(24) * time.Hour / 1000
+	tzBiel := time.FixedZone("Biel", 60*60)
+	t := time.Now().In(tzBiel)
+	ty := t.Sub(time.Date(t.Year(), 1, 1, 0, 0, 0, 0, tzBiel))
+	td := t.Sub(time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, tzBiel))
+	ts := fmt.Sprintf(
+		"%d/%d@%d",
+		t.Year()%1000,
+		int(ty/(time.Duration(24)*time.Hour))+1,
+		int(td/Beat),
+	)
+	fmt.Fprintf(os.Stderr, ts+" "+msg+"\n", args...)
+}
+
+type TgSendMessageRequest struct {
+	ChatId                int64  `json:"chat_id"`
+	Text                  string `json:"text"`
+	ParseMode             string `json:"parse_mode,omitempty"`
+	DisableNotification   bool   `json:"disable_notification"`
+	DisableWebPagePreview bool   `json:"disable_web_page_preview"`
+}
+
+type TgEditMessageRequest struct {
+	TgSendMessageRequest
+	MessageId int64 `json:"message_id"`
 }

@@ -11,15 +11,15 @@ jobs:
   build-push-ubuntu-24-04:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v3
       - name: version
         run: |
           BUILD_OS=ubuntu-24.04
           echo "BUILD_OS:$BUILD_OS"
           echo "BUILD_OS=$BUILD_OS" >> $GITHUB_ENV
-          VERSION=$( date '+%y%m%d.%H%M.0' )-$BUILD_OS
+          VERSION=$( date '+%y.%m%d.%H%M' )-$BUILD_OS
           echo "VERSION:$VERSION"
           echo "VERSION=$VERSION" >> $GITHUB_ENV
+      - uses: actions/checkout@v4
       - uses: actions/setup-go@v4
         with:
           go-version: '^1.23.2'
@@ -51,7 +51,6 @@ jobs:
   build-push-alpine-3-19:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
       # https://github.com/jirutka/setup-alpine
       - uses: jirutka/setup-alpine@v1
         with:
@@ -64,9 +63,10 @@ jobs:
           BUILD_OS=alpine-3.19
           echo "BUILD_OS:$BUILD_OS"
           echo "BUILD_OS=$BUILD_OS" >> $GITHUB_ENV
-          VERSION=$( date '+%y%m%d.%H%M.0' )-$BUILD_OS
+          VERSION=$( date '+%y.%m%d.%H%M' )-$BUILD_OS
           echo "VERSION:$VERSION"
           echo "VERSION=$VERSION" >> $GITHUB_ENV
+      - uses: actions/checkout@v4
       - name: go build
         shell: alpine.sh {0}
         run: GOOS=linux GOARCH=amd64 go build -o ${{ github.event.repository.name }}.linux.amd64 -trimpath -ldflags ' -X main.Version='$VERSION
@@ -99,8 +99,6 @@ jobs:
   build-push-alpine-3-20:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      # https://github.com/jirutka/setup-alpine
       - uses: jirutka/setup-alpine@v1
         with:
           branch: v3.20
@@ -112,9 +110,11 @@ jobs:
           BUILD_OS=alpine-3.20
           echo "BUILD_OS:$BUILD_OS"
           echo "BUILD_OS=$BUILD_OS" >> $GITHUB_ENV
-          VERSION=$( date '+%y%m%d.%H%M.0' )-$BUILD_OS
+          VERSION=$( date '+%y.%m%d.%H%M' )-$BUILD_OS
           echo "VERSION:$VERSION"
           echo "VERSION=$VERSION" >> $GITHUB_ENV
+      - uses: actions/checkout@v4
+      # https://github.com/jirutka/setup-alpine
       - name: go build
         shell: alpine.sh {0}
         run: GOOS=linux GOARCH=amd64 go build -o ${{ github.event.repository.name }}.linux.amd64 -trimpath -ldflags ' -X main.Version='$VERSION
