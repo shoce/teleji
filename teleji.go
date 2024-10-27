@@ -58,6 +58,10 @@ var (
 	TgMessageText string
 )
 
+const (
+	NL = "\n"
+)
+
 func init() {
 	if len(os.Args) == 2 && (os.Args[1] == "version" || os.Args[1] == "--version") {
 		fmt.Println(Version)
@@ -294,19 +298,17 @@ func main() {
 	*/
 }
 
-func log(msg string, args ...interface{}) {
-	const Beat = time.Duration(24) * time.Hour / 1000
-	tzBiel := time.FixedZone("Biel", 60*60)
-	t := time.Now().In(tzBiel)
-	ty := t.Sub(time.Date(t.Year(), 1, 1, 0, 0, 0, 0, tzBiel))
-	td := t.Sub(time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, tzBiel))
-	ts := fmt.Sprintf(
-		"%d/%d@%d",
-		t.Year()%1000,
-		int(ty/(time.Duration(24)*time.Hour))+1,
-		int(td/Beat),
+func ts() string {
+	t := time.Now().Local()
+	return fmt.Sprintf(
+		"%03d."+"%02d%02d."+"%02d%02d",
+		t.Year()%1000, t.Month(), t.Day(), t.Hour(), t.Minute(),
 	)
-	fmt.Fprintf(os.Stderr, ts+" "+msg+"\n", args...)
+}
+
+func log(msg interface{}, args ...interface{}) {
+	msgtext := fmt.Sprintf("%s %s", ts(), msg) + NL
+	fmt.Fprintf(os.Stderr, msgtext, args...)
 }
 
 type TgSendMessageRequest struct {
