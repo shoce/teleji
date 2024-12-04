@@ -18,13 +18,15 @@ teleji version - prints version to stdout
 
 https://core.telegram.org/bots/api
 
-go get -a -u -v
+go get -u -v
 go mod tidy
 
 GoFmt
 GoBuildNull
 GoBuild
 GoRun
+
+TODO escape in main
 */
 
 package main
