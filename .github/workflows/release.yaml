@@ -60,7 +60,7 @@ jobs:
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
-        run: for tag in $( gh release list --order asc --limit 100 --json tagName --jq '.[] | select(.tagName | test("-ubuntu-")) | .tagName' | head -n -3 ) ; do gh release delete $tag -y ; done
+        run: for tag in $( gh release list --order asc --limit 100 --json tagName --jq '.[] | select(.tagName | test("-ubuntu-")) | .tagName' | head -n -3 ) ; do gh release delete "$tag" -y ; done
 
 
   build-push-alpine-3-20:
@@ -121,6 +121,6 @@ jobs:
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
-        run: for tag in $( gh release list --order asc --limit 100 --json tagName --jq '.[] | select(.tagName | test("-alpine-")) | .tagName' | head -n -3 ) ; do gh release delete $tag -y ; done
+        run: for tag in $( gh release list --order asc --limit 100 --json tagName --jq '.[] | select(.tagName | test("-alpine-")) | .tagName' | head -n -3 ) ; do gh release delete "$tag" -y ; done
 
 
