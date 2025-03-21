@@ -115,6 +115,6 @@ jobs:
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release list --order asc --limit 10 --json createdAt,tagName --jq '.[] | select(.tagName | test("-alpine-"))'
+        run: gh release list --order asc --limit 10 --jq '.[] | select(.tagName | test("-alpine-"))'
 
 
