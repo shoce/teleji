@@ -18,9 +18,6 @@ teleji version - prints version to stdout
 
 https://core.telegram.org/bots/api
 
-go get -u -v
-go mod tidy
-
 GoFmt
 GoBuildNull
 GoBuild
@@ -52,9 +49,9 @@ var (
 	TgPrefix                string
 	TgSuffix                string
 	TgParseMode             string
-	TgDisableNotification   bool
-	TgDisableWebPagePreview bool
-	TgPre                   bool
+	TgDisableNotification   bool = true
+	TgDisableWebPagePreview bool = true
+	TgPre                   bool = false
 	//CgiMode     bool
 
 	TgMessageText string
@@ -65,43 +62,30 @@ const (
 )
 
 func init() {
+
 	if len(os.Args) == 2 && (os.Args[1] == "version" || os.Args[1] == "--version") {
 		fmt.Println(Version)
 		os.Exit(0)
 	}
 
-	TgMessageText = strings.TrimSpace(os.Getenv("TgMessageText"))
+	TgMessageText = os.Getenv("TgMessageText")
+	TgMessageText = strings.TrimSpace(TgMessageText)
 
 	if len(os.Args) > 1 && os.Args[1] == "escape" {
 
 		if len(os.Args) > 2 {
-			TgMessageText = strings.TrimSpace(os.Getenv(os.Args[2]))
+			TgMessageText = os.Getenv(os.Args[2])
+			TgMessageText = strings.TrimSpace(TgMessageText)
 		}
 
 		// https://core.telegram.org/bots/api#markdownv2-style
-		TgMessageText = strings.NewReplacer(
-			"`", "\\`",
-			".", "\\.",
-			"-", "\\-",
-			"_", "\\_",
-			"#", "\\#",
-			"*", "\\*",
-			"~", "\\~",
-			">", "\\>",
-			"+", "\\+",
-			"=", "\\=",
-			"|", "\\|",
-			"!", "\\!",
-			"{", "\\{",
-			"}", "\\}",
-			"[", "\\[",
-			"]", "\\]",
-			"(", "\\(",
-			")", "\\)",
-		).Replace(TgMessageText)
+		for _, c := range "\\_*[]()~`>#+-=|{}.!" {
+			TgMessageText = strings.ReplaceAll(TgMessageText, string(c), "\\"+string(c))
+		}
 
 		fmt.Println(TgMessageText)
 		os.Exit(0)
+
 	}
 
 	if TgMessageText == "" {
@@ -154,10 +138,8 @@ func init() {
 	TgParseMode = os.Getenv("TgParseMode")
 	TgPrefix = os.Getenv("TgPrefix")
 	TgSuffix = os.Getenv("TgSuffix")
-	TgDisableNotification = true
-	TgDisableWebPagePreview = true
 
-	if os.Getenv("TgPre") != "" && os.Getenv("TgPre") != "false" {
+	if os.Getenv("TgPre") != "" {
 		TgPre = true
 	}
 }
@@ -184,9 +166,10 @@ func main() {
 	}
 
 	if TgPre {
-		TgMessageText = strings.ReplaceAll(TgMessageText, "\\", "\\\\")
-		TgMessageText = strings.ReplaceAll(TgMessageText, "`", "\\`")
-		TgMessageText = "```\n" + TgMessageText + "\n```"
+		for _, c := range "\\`" {
+			TgMessageText = strings.ReplaceAll(TgMessageText, string(c), "\\"+string(c))
+		}
+		TgMessageText = "```" + NL + TgMessageText + NL + "```"
 		TgParseMode = "MarkdownV2"
 	}
 
@@ -218,10 +201,6 @@ func main() {
 				log("json: %v", sendMessageJSONBuffer)
 			}
 
-			if TgToken == "" {
-				log("Empty TgToken.")
-				os.Exit(1)
-			}
 			requrl := fmt.Sprintf("https://api.telegram.org/bot%s/sendMessage", TgToken)
 			if Verbose {
 				log("url: %v", requrl)
@@ -256,10 +235,6 @@ func main() {
 				log("json: %v", editMessageTextJSONBuffer)
 			}
 
-			if TgToken == "" {
-				log("Empty TgToken.")
-				os.Exit(1)
-			}
 			requrl := fmt.Sprintf("https://api.telegram.org/bot%s/editMessageText", TgToken)
 			if Verbose {
 				log("url: %v", requrl)
@@ -303,14 +278,13 @@ func main() {
 func ts() string {
 	t := time.Now().Local()
 	return fmt.Sprintf(
-		"%03d."+"%02d%02d."+"%02d%02d",
+		"%03d:%02d%02d:%02d%02d",
 		t.Year()%1000, t.Month(), t.Day(), t.Hour(), t.Minute(),
 	)
 }
 
-func log(msg interface{}, args ...interface{}) {
-	msgtext := fmt.Sprintf("%s %s", ts(), msg) + NL
-	fmt.Fprintf(os.Stderr, msgtext, args...)
+func log(msg string, args ...interface{}) {
+	fmt.Fprintf(os.Stderr, ts()+" "+msg+NL, args...)
 }
 
 type TgSendMessageRequest struct {
