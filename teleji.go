@@ -18,6 +18,7 @@ teleji version - prints version to stdout
 
 https://core.telegram.org/bots/api
 
+GoGet
 GoFmt
 GoBuildNull
 GoBuild
