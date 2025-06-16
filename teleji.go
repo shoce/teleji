@@ -18,10 +18,7 @@ teleji version - prints version to stdout
 
 https://core.telegram.org/bots/api
 
-GoGet
-GoFmt
-GoBuildNull
-GoBuild
+GoGet GoFmt GoBuildNull GoBuild
 GoRun
 
 TODO escape in main
@@ -277,10 +274,11 @@ func main() {
 }
 
 func ts() string {
-	t := time.Now().Local()
+	tnow := time.Now().Local()
 	return fmt.Sprintf(
-		"%03d:%02d%02d:%02d%02d",
-		t.Year()%1000, t.Month(), t.Day(), t.Hour(), t.Minute(),
+		"%d%02d%02d:%02d%02d",
+		tnow.Year()%1000, tnow.Month(), tnow.Day(),
+		tnow.Hour(), tnow.Minute(),
 	)
 }
 

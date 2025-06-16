@@ -12,12 +12,14 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
 
+      - uses: shoce/action-version@v1
+
       - name: version
         run: |
           BUILD_OS=ubuntu-24.04
           echo "BUILD_OS:$BUILD_OS"
           echo "BUILD_OS=$BUILD_OS" >> $GITHUB_ENV
-          VERSION=$( date '+%y.%m%d.%H%M' | sed 's/\.0*/./g' )-$BUILD_OS
+          VERSION=$VERSION-$BUILD_OS
           echo "VERSION:$VERSION"
           echo "VERSION=$VERSION" >> $GITHUB_ENV
 
@@ -26,7 +28,7 @@ jobs:
       # https://github.com/actions/setup-go
       - uses: actions/setup-go@v5
         with:
-          go-version: '^1.24.2'
+          go-version: '^1.24.4'
 
       - name: go build
         run: GOOS=linux GOARCH=amd64 go build -o ${{ github.event.repository.name }}.linux.amd64 -trimpath -ldflags ' -X main.Version='$VERSION
