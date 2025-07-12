@@ -69,12 +69,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
+      - uses: shoce/action-version@v1
+
       - name: version
         run: |
           BUILD_OS=alpine-3.22
           echo "BUILD_OS:$BUILD_OS"
           echo "BUILD_OS=$BUILD_OS" >> $GITHUB_ENV
-          VERSION=$( date '+%y.%m%d.%H%M' | sed 's/\.0*/./g' )-$BUILD_OS
+          VERSION=$VERSION-$BUILD_OS
           echo "VERSION:$VERSION"
           echo "VERSION=$VERSION" >> $GITHUB_ENV
 
