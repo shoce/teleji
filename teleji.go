@@ -38,7 +38,7 @@ import (
 )
 
 var (
-	Version string
+	VERSION string
 	Verbose bool
 
 	TgToken                 string
@@ -62,7 +62,7 @@ const (
 func init() {
 
 	if len(os.Args) == 2 && (os.Args[1] == "version" || os.Args[1] == "--version") {
-		fmt.Println(Version)
+		fmt.Println(VERSION)
 		os.Exit(0)
 	}
 
@@ -87,7 +87,7 @@ func init() {
 	}
 
 	if TgMessageText == "" {
-		log("Empty TgMessageText.")
+		log("ERROR Empty TgMessageText")
 		os.Exit(1)
 	}
 
@@ -97,7 +97,7 @@ func init() {
 
 	TgToken = os.Getenv("TgToken")
 	if TgToken == "" {
-		log("Empty TgToken env var.")
+		log("ERROR Empty TgToken env var")
 		os.Exit(1)
 	}
 
@@ -109,12 +109,12 @@ func init() {
 		var err error
 		chatid, err = strconv.ParseInt(i, 10, 64)
 		if err != nil || chatid == 0 {
-			log("Invalid chat id `%s`", i)
+			log("ERROR Invalid chat id [%s]", i)
 		}
 		TgChatIds = append(TgChatIds, chatid)
 	}
 	if len(TgChatIds) == 0 {
-		log("Empty or invalid TgChatId env var.")
+		log("ERROR Empty or invalid TgChatId env var")
 		os.Exit(1)
 	}
 
@@ -124,12 +124,12 @@ func init() {
 		}
 		messageid, err := strconv.Atoi(i)
 		if err != nil || messageid == 0 {
-			log("Invalid message id `%s`", i)
+			log("ERROR invalid message id [%s]", i)
 		}
 		TgMessageIds = append(TgMessageIds, messageid)
 	}
 	if len(TgMessageIds) > 0 && len(TgMessageIds) != len(TgChatIds) {
-		log("Number of message ids should be equal to number of chat ids.")
+		log("ERROR number of message ids should be equal to number of chat ids")
 		os.Exit(1)
 	}
 
@@ -191,25 +191,24 @@ func main() {
 			}
 			sendMessageJSON, err := json.Marshal(sendMessage)
 			if err != nil {
-				log("%v", err)
+				log("ERROR json.Marshal: %v", err)
 				os.Exit(1)
 			}
-			sendMessageJSONBuffer := bytes.NewBuffer(sendMessageJSON)
 			if Verbose {
-				log("json: %v", sendMessageJSONBuffer)
+				log("DEBUG json [%s]", sendMessageJSON)
 			}
 
 			requrl := fmt.Sprintf("https://api.telegram.org/bot%s/sendMessage", TgToken)
 			if Verbose {
-				log("url: %v", requrl)
+				log("DEBUG url [%s]", requrl)
 			}
 			resp, err = http.Post(
 				requrl,
 				"application/json",
-				sendMessageJSONBuffer,
+				bytes.NewReader(sendMessageJSON),
 			)
 			if err != nil {
-				log("%v", err)
+				log("ERROR http.Post: %v", err)
 				os.Exit(1)
 			}
 		} else {
@@ -225,43 +224,42 @@ func main() {
 			}
 			editMessageTextJSON, err := json.Marshal(editMessageText)
 			if err != nil {
-				log("%v", err)
+				log("ERROR json.Marshal: %v", err)
 				os.Exit(1)
 			}
-			editMessageTextJSONBuffer := bytes.NewBuffer(editMessageTextJSON)
 			if Verbose {
-				log("json: %v", editMessageTextJSONBuffer)
+				log("DEBUG json [%s]", editMessageTextJSON)
 			}
 
 			requrl := fmt.Sprintf("https://api.telegram.org/bot%s/editMessageText", TgToken)
 			if Verbose {
-				log("url: %v", requrl)
+				log("DEBUG url [%s]", requrl)
 			}
 			resp, err = http.Post(
 				requrl,
 				"application/json",
-				editMessageTextJSONBuffer,
+				bytes.NewReader(editMessageTextJSON),
 			)
 			if err != nil {
-				log("%v", err)
+				log("ERROR http.Post: %v", err)
 				os.Exit(1)
 			}
 		}
 
 		if Verbose {
-			log("resp.StatusCode: %v", resp.StatusCode)
+			log("resp.StatusCode [%v]", resp.StatusCode)
 		}
 		err = json.NewDecoder(resp.Body).Decode(&smresp)
 		if err != nil {
-			log("%v", err)
+			log("ERROR json.Decode: %v", err)
 			os.Exit(1)
 		}
 		if !smresp.OK {
-			log("Api response not OK: %+v", smresp)
+			log("ERROR api response not ok: %+v", smresp)
 			os.Exit(1)
 		}
 
-		fmt.Printf("%d\n", smresp.Result.MessageId)
+		fmt.Printf("%d"+NL, smresp.Result.MessageId)
 	}
 
 	/*
@@ -283,7 +281,9 @@ func ts() string {
 }
 
 func log(msg string, args ...interface{}) {
-	fmt.Fprintf(os.Stderr, ts()+" "+msg+NL, args...)
+	logmsg := fmt.Sprintf(msg+NL, args...)
+	logmsg = strings.ReplaceAll(logmsg, TgToken, "[TgToken]")
+	fmt.Fprintf(os.Stderr, ts()+" "+logmsg)
 }
 
 type TgSendMessageRequest struct {

@@ -31,7 +31,7 @@ jobs:
           go-version: '^1.24.5'
 
       - name: go build
-        run: GOOS=linux GOARCH=amd64 go build -o ${{ github.event.repository.name }}.linux.amd64 -trimpath -ldflags ' -X main.Version='$VERSION
+        run: GOOS=linux GOARCH=amd64 go build -o ${{ github.event.repository.name }}.linux.amd64 -trimpath -ldflags ' -X main.VERSION='$VERSION
 
       - name: gzip
         run: gzip -k ${{ github.event.repository.name }}.linux.amd64
@@ -92,7 +92,7 @@ jobs:
 
       - name: go build
         shell: alpine.sh {0}
-        run: GOOS=linux GOARCH=amd64 go build -o ${{ github.event.repository.name }}.linux.amd64 -trimpath -ldflags ' -X main.Version='$VERSION
+        run: GOOS=linux GOARCH=amd64 go build -o ${{ github.event.repository.name }}.linux.amd64 -trimpath -ldflags ' -X main.VERSION='$VERSION
       - name: gzip
         shell: alpine.sh {0}
         run: gzip -k ${{ github.event.repository.name }}.linux.amd64
