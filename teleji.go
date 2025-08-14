@@ -282,7 +282,9 @@ func ts() string {
 
 func log(msg string, args ...interface{}) {
 	logmsg := fmt.Sprintf(msg+NL, args...)
-	logmsg = strings.ReplaceAll(logmsg, TgToken, "[TgToken]")
+	if TgToken != "" {
+		logmsg = strings.ReplaceAll(logmsg, TgToken, "[TgToken]")
+	}
 	fmt.Fprintf(os.Stderr, ts()+" "+logmsg)
 }
 
