@@ -9,7 +9,9 @@ history:
 021/0916 TgDisableWebPagePreview
 024/0529 TgMessageText env var instead of reading from stdin
 024/0529 escape cmd
+*/
 
+/*
 usage:
 teleji - reads text from TgMessageText env var and sends the message
 teleji escape - reads text from TgMessageText env var, prints escaped text to stdout
@@ -18,11 +20,11 @@ teleji version - prints version to stdout
 
 https://core.telegram.org/bots/api
 
-GoGet GoFmt GoBuildNull GoBuild
-GoRun
-
 TODO escape in main
 */
+
+// GoGet GoFmt GoBuildNull GoBuild
+// GoRun
 
 package main
 
@@ -56,13 +58,14 @@ var (
 )
 
 const (
+	SP = " "
 	NL = "\n"
 )
 
 func init() {
 
-	if len(os.Args) == 2 && (os.Args[1] == "version" || os.Args[1] == "--version") {
-		fmt.Println(VERSION)
+	if len(os.Args) == 2 && os.Args[1] == "-version" {
+		fmt.Print(VERSION + NL)
 		os.Exit(0)
 	}
 
@@ -87,7 +90,7 @@ func init() {
 	}
 
 	if TgMessageText == "" {
-		log("ERROR Empty TgMessageText")
+		perr("ERROR Empty TgMessageText")
 		os.Exit(1)
 	}
 
@@ -97,7 +100,7 @@ func init() {
 
 	TgToken = os.Getenv("TgToken")
 	if TgToken == "" {
-		log("ERROR Empty TgToken env var")
+		perr("ERROR Empty TgToken env var")
 		os.Exit(1)
 	}
 
@@ -109,12 +112,12 @@ func init() {
 		var err error
 		chatid, err = strconv.ParseInt(i, 10, 64)
 		if err != nil || chatid == 0 {
-			log("ERROR Invalid chat id [%s]", i)
+			perr("ERROR Invalid chat id [%s]", i)
 		}
 		TgChatIds = append(TgChatIds, chatid)
 	}
 	if len(TgChatIds) == 0 {
-		log("ERROR Empty or invalid TgChatId env var")
+		perr("ERROR Empty or invalid TgChatId env var")
 		os.Exit(1)
 	}
 
@@ -124,12 +127,12 @@ func init() {
 		}
 		messageid, err := strconv.Atoi(i)
 		if err != nil || messageid == 0 {
-			log("ERROR invalid message id [%s]", i)
+			perr("ERROR invalid message id [%s]", i)
 		}
 		TgMessageIds = append(TgMessageIds, messageid)
 	}
 	if len(TgMessageIds) > 0 && len(TgMessageIds) != len(TgChatIds) {
-		log("ERROR number of message ids should be equal to number of chat ids")
+		perr("ERROR number of message ids should be equal to number of chat ids")
 		os.Exit(1)
 	}
 
@@ -191,16 +194,16 @@ func main() {
 			}
 			sendMessageJSON, err := json.Marshal(sendMessage)
 			if err != nil {
-				log("ERROR json.Marshal: %v", err)
+				perr("ERROR json.Marshal %v", err)
 				os.Exit(1)
 			}
 			if Verbose {
-				log("DEBUG json [%s]", sendMessageJSON)
+				perr("DEBUG json [%s]", sendMessageJSON)
 			}
 
 			requrl := fmt.Sprintf("https://api.telegram.org/bot%s/sendMessage", TgToken)
 			if Verbose {
-				log("DEBUG url [%s]", requrl)
+				perr("DEBUG url [%s]", requrl)
 			}
 			resp, err = http.Post(
 				requrl,
@@ -208,7 +211,7 @@ func main() {
 				bytes.NewReader(sendMessageJSON),
 			)
 			if err != nil {
-				log("ERROR http.Post: %v", err)
+				perr("ERROR http.Post %v", err)
 				os.Exit(1)
 			}
 		} else {
@@ -224,16 +227,16 @@ func main() {
 			}
 			editMessageTextJSON, err := json.Marshal(editMessageText)
 			if err != nil {
-				log("ERROR json.Marshal: %v", err)
+				perr("ERROR json.Marshal %v", err)
 				os.Exit(1)
 			}
 			if Verbose {
-				log("DEBUG json [%s]", editMessageTextJSON)
+				perr("DEBUG json [%s]", editMessageTextJSON)
 			}
 
 			requrl := fmt.Sprintf("https://api.telegram.org/bot%s/editMessageText", TgToken)
 			if Verbose {
-				log("DEBUG url [%s]", requrl)
+				perr("DEBUG url [%s]", requrl)
 			}
 			resp, err = http.Post(
 				requrl,
@@ -241,21 +244,21 @@ func main() {
 				bytes.NewReader(editMessageTextJSON),
 			)
 			if err != nil {
-				log("ERROR http.Post: %v", err)
+				perr("ERROR http.Post %v", err)
 				os.Exit(1)
 			}
 		}
 
 		if Verbose {
-			log("resp.StatusCode [%v]", resp.StatusCode)
+			perr("resp.StatusCode [%v]", resp.StatusCode)
 		}
 		err = json.NewDecoder(resp.Body).Decode(&smresp)
 		if err != nil {
-			log("ERROR json.Decode: %v", err)
+			perr("ERROR json.Decode %v", err)
 			os.Exit(1)
 		}
 		if !smresp.OK {
-			log("ERROR api response not ok: %+v", smresp)
+			perr("ERROR api response not ok %+v", smresp)
 			os.Exit(1)
 		}
 
@@ -271,21 +274,21 @@ func main() {
 	*/
 }
 
-func ts() string {
+func perr(msg string, args ...interface{}) {
 	tnow := time.Now().Local()
-	return fmt.Sprintf(
-		"%d%02d%02d:%02d%02d",
+	ts := fmt.Sprintf(
+		"%d:%02d%02d:%02d%02d%02d",
 		tnow.Year()%1000, tnow.Month(), tnow.Day(),
-		tnow.Hour(), tnow.Minute(),
+		tnow.Hour(), tnow.Minute(), tnow.Second(),
 	)
-}
-
-func log(msg string, args ...interface{}) {
-	logmsg := fmt.Sprintf(msg+NL, args...)
-	if TgToken != "" {
-		logmsg = strings.ReplaceAll(logmsg, TgToken, "[TgToken]")
+	msgtext := msg
+	if len(args) > 0 {
+		msgtext = fmt.Sprintf(msg, args...)
 	}
-	fmt.Fprintf(os.Stderr, ts()+" "+logmsg)
+	if TgToken != "" {
+		msgtext = strings.ReplaceAll(msgtext, TgToken, "[TgToken]")
+	}
+	fmt.Fprint(os.Stderr, "<"+ts+">"+SP+msgtext+NL)
 }
 
 type TgSendMessageRequest struct {
