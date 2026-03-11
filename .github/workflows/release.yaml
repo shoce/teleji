@@ -43,8 +43,8 @@ jobs:
       - name: release notes
         run: |
           {
-          echo "curl -sSL https://github.com/shoce/${{ github.event.repository.name }}/releases/download/$VERSION/${{ github.event.repository.name }}.linux.amd64.gz | gunzip | put /bin/${{ github.event.repository.name }}-$BUILD_OS 755"
-          echo "curl -sSL https://github.com/shoce/${{ github.event.repository.name }}/releases/download/$VERSION/${{ github.event.repository.name }}.linux.amd64.gz | gunzip | put /bin/${{ github.event.repository.name }} 755"
+          echo "curl -sSL https://github.com/shoce/${{ github.event.repository.name }}/releases/download/$VERSION/${{ github.event.repository.name }}.linux.amd64.gz | gunzip | put /usr/local/bin/${{ github.event.repository.name }}-$BUILD_OS 755"
+          echo "curl -sSL https://github.com/shoce/${{ github.event.repository.name }}/releases/download/$VERSION/${{ github.event.repository.name }}.linux.amd64.gz | gunzip | put /usr/local/bin/${{ github.event.repository.name }} 755"
           echo
           echo /etc/os-release:
           cat /etc/os-release
@@ -106,8 +106,8 @@ jobs:
         shell: alpine.sh {0}
         run: |
           {
-          echo "curl -sSL https://github.com/shoce/${{ github.event.repository.name }}/releases/download/$VERSION/${{ github.event.repository.name }}.linux.amd64.gz | gunzip | put /bin/${{ github.event.repository.name }}-$BUILD_OS 755"
-          echo "curl -sSL https://github.com/shoce/${{ github.event.repository.name }}/releases/download/$VERSION/${{ github.event.repository.name }}.linux.amd64.gz | gunzip | put /bin/${{ github.event.repository.name }} 755"
+          echo "curl -sSL https://github.com/shoce/${{ github.event.repository.name }}/releases/download/$VERSION/${{ github.event.repository.name }}.linux.amd64.gz | gunzip | put /usr/local/bin/${{ github.event.repository.name }}-$BUILD_OS 755"
+          echo "curl -sSL https://github.com/shoce/${{ github.event.repository.name }}/releases/download/$VERSION/${{ github.event.repository.name }}.linux.amd64.gz | gunzip | put /usr/local/bin/${{ github.event.repository.name }} 755"
           echo
           echo /etc/alpine-release:
           cat /etc/alpine-release
