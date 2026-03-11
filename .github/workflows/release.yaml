@@ -24,7 +24,7 @@ jobs:
           echo "VERSION:$VERSION"
           echo "VERSION=$VERSION" >> $GITHUB_ENV
 
-      - uses: actions/checkout@v4
+      - uses: shoce/action-checkout@v1
 
       # https://github.com/actions/setup-go
       - uses: actions/setup-go@v5
@@ -66,15 +66,15 @@ jobs:
         run: for tag in $( gh release list --order asc --limit 100 --json tagName --jq '.[] | select(.tagName | test("-ubuntu-")) | .tagName' | head -n -3 ) ; do gh release delete "$tag" -y ; done
 
 
-  build-push-alpine-3-22:
-    runs-on: ubuntu-latest
+  build-push-alpine-3-23:
+    runs-on: ubuntu-24.04
     steps:
 
       - uses: shoce/action-version@v1
 
       - name: version
         run: |
-          BUILD_OS=alpine-3.22
+          BUILD_OS=alpine-3.23
           echo "BUILD_OS:$BUILD_OS"
           echo "BUILD_OS=$BUILD_OS" >> $GITHUB_ENV
           VERSION=$VERSION-$BUILD_OS
@@ -84,12 +84,12 @@ jobs:
       # https://github.com/jirutka/setup-alpine
       - uses: jirutka/setup-alpine@v1
         with:
-          branch: v3.22
+          branch: v3.23
           arch: x86_64
           packages: >
             go
 
-      - uses: actions/checkout@v4
+      - uses: shoce/action-checkout@v1
 
       - name: go build
         shell: alpine.sh {0}
