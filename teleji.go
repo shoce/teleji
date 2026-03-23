@@ -39,10 +39,18 @@ import (
 	"time"
 )
 
+const (
+	SP = " "
+	NL = "\n"
+
+	TgApiUrlDef = "https://api.telegram.org"
+)
+
 var (
 	VERSION string
-	Verbose bool
+	VERBOSE bool
 
+	TgApiUrl                = TgApiUrlDef
 	TgToken                 string
 	TgChatIds               []int64
 	TgMessageIds            []int
@@ -55,11 +63,6 @@ var (
 	//CgiMode     bool
 
 	TgMessageText string
-)
-
-const (
-	SP = " "
-	NL = "\n"
 )
 
 func init() {
@@ -94,9 +97,14 @@ func init() {
 		os.Exit(1)
 	}
 
-	if os.Getenv("Verbose") != "" {
-		Verbose = true
+	if os.Getenv("VERBOSE") != "" {
+		VERBOSE = true
 	}
+
+	if v := os.Getenv("TgApiUrl"); v != "" {
+		TgApiUrl = v
+	}
+	perr("TgApiUrl [%s]", TgApiUrl)
 
 	TgToken = os.Getenv("TgToken")
 	if TgToken == "" {
@@ -197,14 +205,10 @@ func main() {
 				perr("ERROR json.Marshal %v", err)
 				os.Exit(1)
 			}
-			if Verbose {
-				perr("DEBUG json [%s]", sendMessageJSON)
-			}
+			perr("VERBOSE json [%s]", sendMessageJSON)
 
-			requrl := fmt.Sprintf("https://api.telegram.org/bot%s/sendMessage", TgToken)
-			if Verbose {
-				perr("DEBUG url [%s]", requrl)
-			}
+			requrl := fmt.Sprintf(TgApiUrl+"/bot%s/sendMessage", TgToken)
+			perr("VERBOSE url [%s]", requrl)
 			resp, err = http.Post(
 				requrl,
 				"application/json",
@@ -230,14 +234,10 @@ func main() {
 				perr("ERROR json.Marshal %v", err)
 				os.Exit(1)
 			}
-			if Verbose {
-				perr("DEBUG json [%s]", editMessageTextJSON)
-			}
+			perr("VERBOSE json [%s]", editMessageTextJSON)
 
-			requrl := fmt.Sprintf("https://api.telegram.org/bot%s/editMessageText", TgToken)
-			if Verbose {
-				perr("DEBUG url [%s]", requrl)
-			}
+			requrl := fmt.Sprintf(TgApiUrl+"/bot%s/editMessageText", TgToken)
+			perr("VERBOSE url [%s]", requrl)
 			resp, err = http.Post(
 				requrl,
 				"application/json",
@@ -249,9 +249,7 @@ func main() {
 			}
 		}
 
-		if Verbose {
-			perr("resp.StatusCode [%v]", resp.StatusCode)
-		}
+		perr("VERBOSE resp.StatusCode [%v]", resp.StatusCode)
 		err = json.NewDecoder(resp.Body).Decode(&smresp)
 		if err != nil {
 			perr("ERROR json.Decode %v", err)
@@ -275,6 +273,9 @@ func main() {
 }
 
 func perr(msg string, args ...interface{}) {
+	if strings.HasPrefix(msg, "VERBOSE ") && !VERBOSE {
+		return
+	}
 	tnow := time.Now().Local()
 	ts := fmt.Sprintf(
 		"%d:%02d%02d:%02d%02d%02d",
