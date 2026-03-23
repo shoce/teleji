@@ -17,14 +17,14 @@ teleji - reads text from TgMessageText env var and sends the message
 teleji escape - reads text from TgMessageText env var, prints escaped text to stdout
 teleji escape VAR_NAME - reads text from VAR_NAME env var, prints escaped text to stdout
 teleji version - prints version to stdout
-
-https://core.telegram.org/bots/api
-
-TODO escape in main
 */
 
-// GoGet GoFmt GoBuildNull GoBuild
+// https://core.telegram.org/bots/api
+
+// GoFixDiff GoGet GoFmt GoBuildNull GoBuild
 // GoRun
+
+// TODO escape in main
 
 package main
 
